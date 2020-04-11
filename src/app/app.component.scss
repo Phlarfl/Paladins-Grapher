@@ -1,0 +1,25 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    > .toolbar {
+        flex: 0 0 auto;
+    }
+
+    > .content {
+        flex: 1 1 auto;
+
+        display: flex;
+
+        padding: 1em;
+
+        > .inner {
+            flex: 0 1 960px;
+        }
+    }
+}
+
+.flex-spacer {
+    flex: 1 1 auto;
+}

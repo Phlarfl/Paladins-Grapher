@@ -1,0 +1,39 @@
+<div *ngIf="loading" class="loader">
+    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</div>
+<div *ngIf="!loading" class="player-content">
+    <div *ngFor="let player of getPlayers(); let i = index"
+        class="{{ 'player-header' + (getPlayers().length > 1 ? '-small' : '') }}">
+        <img *ngIf="player.AvatarURL" class="icon" [src]="player.AvatarURL">
+        <div class="name">
+            <h1>{{ player.hz_player_name }}</h1>
+            <h3>
+                <span *ngIf="player.Title">{{ player.Title }}</span>
+                <span *ngIf="player.HoursPlayed">{{ player.HoursPlayed }} Hours</span>
+            </h3>
+        </div>
+        <div *ngIf="getPlayers().length > 1" class="delete">
+            <button mat-button mat-icon-button (click)="onDelete(player.hz_player_name)">
+                <mat-icon>clear</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <form id="add-form" [formGroup]="addForm" (ngSubmit)="onAdd()">
+        <mat-form-field class="add-bar" appearance="outline">
+            <mat-label>Add Player</mat-label>
+            <input matInput type="text" placeholder="DryBare" name="player" formControlName="playerName" autofocus>
+            <button *ngIf="!(adding | async)" mat-button matSuffix mat-icon-button>
+                <mat-icon>add</mat-icon>
+            </button>
+            <mat-progress-spinner matSuffix *ngIf="adding | async" mode="indeterminate" diameter="24" strokeWidth="2">
+            </mat-progress-spinner>
+        </mat-form-field>
+    </form>
+
+    <span *ngIf="getGraphs().length === 0">No data found</span>
+    <canvas *ngFor="let graph of getGraphs()" height="150" baseChart [datasets]="graph.lineChartData"
+        [labels]="graph.lineChartLabels" [options]="graph.lineChartOptions" [colors]="graph.lineChartColors"
+        [legend]="graph.lineChartLegend" chartType="line">
+    </canvas>
+</div>
