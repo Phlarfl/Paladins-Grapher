@@ -54,8 +54,8 @@
             </mat-form-field>
         </form>
 
-        <div *ngIf="getLiveMatches().length > 0" class="match-container">
-            <div *ngFor="let match of getLiveMatches()" class="match">
+        <div *ngIf="getMatches().length > 0" class="match-container">
+            <div *ngFor="let match of getMatches()" class="match">
                 <div class="title">
                     Live {{ match[0].name }} Match: {{ match[0].Map_Game }}
                 </div>
@@ -73,7 +73,6 @@
             </div>
         </div>
 
-        <span *ngIf="getGraphs().length === 0">No data found</span>
         <div *ngIf="getGraphs().length > 0" class="graph-container">
             <div *ngFor="let graph of getGraphs()" class="graph">
                 <mat-card>

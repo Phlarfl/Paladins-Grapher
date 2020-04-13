@@ -21,7 +21,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   playerName = new BehaviorSubject<String>("");
   players = new BehaviorSubject<{ [key: string]: any }>({});
   graphs = new BehaviorSubject<{ [key: string]: Graph }>({});
-  liveMatches = new BehaviorSubject<{ [key: string]: MatchPlayer[] }>({});
+  matches = new BehaviorSubject<{ [key: string]: MatchPlayer[] }>({});
   champions = new BehaviorSubject<{ [key: string]: Champion }>({});
 
   loading = true;
@@ -66,8 +66,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
     return Object.values(this.graphs.getValue());
   }
 
-  getLiveMatches(): MatchPlayer[][] {
-    return Object.values(this.liveMatches.getValue());
+  getMatches(): MatchPlayer[][] {
+    return Object.values(this.matches.getValue());
   }
 
   getTeam(team: number, match: MatchPlayer[]): MatchPlayer[] {
@@ -136,15 +136,17 @@ export class PlayerComponent implements OnInit, OnDestroy {
   onAdd(player?: string): void {
     if (!this.adding.getValue()) {
       this.adding.next(true);
-      if (player.length === 0) {
-        this.snackbar.open(`Cannot add this player, their profile is hidden`, undefined, {
-          duration: 5000
-        });
-        this.adding.next(false);
-        return;
+      if (player) {
+        if (player.length === 0) {
+          this.snackbar.open(`Cannot add this player, their profile is hidden`, undefined, {
+            duration: 5000
+          });
+          this.adding.next(false);
+          return;
+        }
+        if (player.length > 0)
+          this.addForm.get('playerName').setValue(player);
       }
-      if (player.length > 0)
-        this.addForm.get('playerName').setValue(player);
       const playerName = player || this.addForm.get('playerName').value;
       this.getData(playerName);
     }
@@ -220,8 +222,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
           return;
         }
         const matches: { [key: number]: MatchPlayer[] } = res.data.matches;
-        console.log(matches);
-        this.liveMatches.next(matches);
+        this.matches.next(matches);
 
         const champions: number[] = [];
         Object.values(matches).forEach((match) => {

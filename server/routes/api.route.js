@@ -95,22 +95,14 @@ module.exports = [
                 }
             });
 
-            const requests = [];
-            let idsPerRequest = [];
-            matchIds.forEach((matchId, index) => {
-                idsPerRequest.push(matchId);
-                if (idsPerRequest.length >= 10 || index == matchIds.length - 1) {
-                    requests.push(paladinsApi.getMatches([...idsPerRequest], req));
-                    idsPerRequest = [];
-                }
-            });
+            const requests = matchIds.map((matchId) => paladinsApi.getLiveMatch(matchId, req));
 
             if (requests.length == 0 && storedMatches.length != 0) {
                 res.send({ matches: storedMatches });
                 return;
             }
 
-            if (requests.length > 5) {
+            if (requests.length > 10) {
                 res.send({ error: 'Too many players, calm down' });
                 return;
             }

@@ -32,8 +32,8 @@ exports.getChampionRanks = (player, req) => {
     return axios.get(exports.buildUrl(req, 'getchampionranks', true, `/${player}`));
 };
 
-exports.getMatches = (players, req) => {
-    return axios.get(exports.buildUrl(req, 'getmatchdetailsbatch', true, `/${players.join(',')}`));
+exports.getLiveMatch = (match, req) => {
+    return axios.get(exports.buildUrl(req, 'getmatchplayerdetails', true, `/${match}`));
 };
 
 exports.getMatchHistory = (player, req) => {
