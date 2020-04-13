@@ -224,6 +224,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
         const matches: { [key: number]: MatchPlayer[] } = res.data.matches;
         this.matches.next(matches);
 
+        console.log(matches);
+
         const champions: number[] = [];
         Object.values(matches).forEach((match) => {
           match.forEach((player) => {

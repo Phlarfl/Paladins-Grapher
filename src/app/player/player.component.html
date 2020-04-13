@@ -57,7 +57,7 @@
         <div *ngIf="getMatches().length > 0" class="match-container">
             <div *ngFor="let match of getMatches()" class="match">
                 <div class="title">
-                    Live {{ match[0].name }} Match: {{ match[0].Map_Game }}
+                    Live Match: {{ match[0].mapGame }}
                 </div>
                 <div class="teams">
                     <div *ngFor="let team of [0, 1]" class="team">
