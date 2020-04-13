@@ -205,7 +205,9 @@ export class PlayerComponent implements OnInit, OnDestroy {
       if (player.status.Match)
         liveMatches[player.status.Match] = player.status.Match;
     });
-    if (Object.values(liveMatches).length > 0)
+    if (Object.values(liveMatches).length === 0)
+      this.matches.next({});
+    else
       axios.default.post('/api/match', { matches: Object.values(liveMatches) }).then((res) => {
         if (res.data.error) {
           console.error('There was an error receiving match data:', res.data.error);
@@ -223,8 +225,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
         }
         const matches: { [key: number]: MatchPlayer[] } = res.data.matches;
         this.matches.next(matches);
-
-        console.log(matches);
 
         const champions: number[] = [];
         Object.values(matches).forEach((match) => {
