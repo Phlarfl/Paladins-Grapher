@@ -7,15 +7,15 @@
         flex: 0 0 auto;
     }
 
-    > .content {
+    .content {
         flex: 1 1 auto;
 
         display: flex;
 
         padding: 1em;
 
-        > .inner {
-            flex: 0 1 960px;
+        .inner {
+            flex: 0 1 1200px;
         }
     }
 }

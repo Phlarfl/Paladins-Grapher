@@ -1,39 +1,89 @@
 <div *ngIf="loading" class="loader">
-    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-</div>
-<div *ngIf="!loading" class="player-content">
-    <div *ngFor="let player of getPlayers(); let i = index"
-        class="{{ 'player-header' + (getPlayers().length > 1 ? '-small' : '') }}">
-        <img *ngIf="player.AvatarURL" class="icon" [src]="player.AvatarURL">
-        <div class="name">
-            <h1>{{ player.hz_player_name }}</h1>
-            <h3>
-                <span *ngIf="player.Title">{{ player.Title }}</span>
-                <span *ngIf="player.HoursPlayed">{{ player.HoursPlayed }} Hours</span>
-            </h3>
-        </div>
-        <div *ngIf="getPlayers().length > 1" class="delete">
-            <button mat-button mat-icon-button (click)="onDelete(player.hz_player_name)">
-                <mat-icon>clear</mat-icon>
-            </button>
+    <div class="container">
+        <div class="circle">
+            <mat-progress-spinner mode="indeterminate" diameter="64" strokeWidth="6"></mat-progress-spinner>
         </div>
     </div>
+</div>
+<div *ngIf="!loading" class="content">
+    <div class="flex-spacer"></div>
+    <div class="inner player-content">
+        <div *ngFor="let player of getPlayers(); let i = index"
+            class="{{ 'player-header' + (getPlayers().length > 1 ? '-small' : '') }}">
+            <img *ngIf="player.AvatarURL" class="icon" [src]="player.AvatarURL">
+            <div class="name">
+                <div class="tag">
+                    <div class="title">
+                        <span>{{ player.hz_player_name }}</span>
+                    </div>
+                    <div class="subtitle">
+                        <button *ngIf="!(refreshing[player.hz_player_name] | async)" mat-icon-button
+                            (click)="refreshPlayerStatus(player)">
+                            <mat-icon>cached</mat-icon>
+                        </button>
+                        <div *ngIf="(refreshing[player.hz_player_name] | async)" class="refresh-loader">
+                            <mat-progress-spinner mode="indeterminate" diameter="24" strokeWidth="2">
+                            </mat-progress-spinner>
+                        </div>
+                        <span>{{ player.status.status_string }}</span>
+                        <div class="flex-spacer"></div>
+                    </div>
+                </div>
+                <div class="details">
+                    <span *ngIf="player.Title">{{ player.Title }}</span>
+                    <span *ngIf="player.HoursPlayed">{{ player.HoursPlayed }} Hours</span>
+                </div>
+            </div>
+            <div *ngIf="getPlayers().length > 1" class="delete">
+                <button mat-button mat-icon-button (click)="onDelete(player.hz_player_name)">
+                    <mat-icon>clear</mat-icon>
+                </button>
+            </div>
+        </div>
 
-    <form id="add-form" [formGroup]="addForm" (ngSubmit)="onAdd()">
-        <mat-form-field class="add-bar" appearance="outline">
-            <mat-label>Add Player</mat-label>
-            <input matInput type="text" placeholder="DryBare" name="player" formControlName="playerName" autofocus>
-            <button *ngIf="!(adding | async)" mat-button matSuffix mat-icon-button>
-                <mat-icon>add</mat-icon>
-            </button>
-            <mat-progress-spinner matSuffix *ngIf="adding | async" mode="indeterminate" diameter="24" strokeWidth="2">
-            </mat-progress-spinner>
-        </mat-form-field>
-    </form>
+        <form id="add-form" [formGroup]="addForm" (ngSubmit)="onAdd()">
+            <mat-form-field class="add-bar" appearance="outline">
+                <mat-label>Add Player</mat-label>
+                <input matInput type="text" placeholder="DryBare" name="player" formControlName="playerName" autofocus>
+                <button *ngIf="!(adding | async)" mat-button matSuffix mat-icon-button>
+                    <mat-icon>add</mat-icon>
+                </button>
+                <mat-progress-spinner matSuffix *ngIf="adding | async" mode="indeterminate" diameter="24"
+                    strokeWidth="2">
+                </mat-progress-spinner>
+            </mat-form-field>
+        </form>
 
-    <span *ngIf="getGraphs().length === 0">No data found</span>
-    <canvas *ngFor="let graph of getGraphs()" height="150" baseChart [datasets]="graph.lineChartData"
-        [labels]="graph.lineChartLabels" [options]="graph.lineChartOptions" [colors]="graph.lineChartColors"
-        [legend]="graph.lineChartLegend" chartType="line">
-    </canvas>
+        <div *ngIf="getLiveMatches().length > 0" class="match-container">
+            <div *ngFor="let match of getLiveMatches()" class="match">
+                <div class="title">
+                    Live {{ match[0].name }} Match: {{ match[0].Map_Game }}
+                </div>
+                <div class="teams">
+                    <div *ngFor="let team of [0, 1]" class="team">
+                        <div *ngFor="let player of getTeam(team, match)" class="player"
+                            (click)="onAdd(player.playerName)">
+                            <img [src]="(champions | async)[player.ChampionId]?.ChampionIcon_URL" class="avatar">
+                            <span>
+                                {{ player.playerName || '—' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <span *ngIf="getGraphs().length === 0">No data found</span>
+        <div *ngIf="getGraphs().length > 0" class="graph-container">
+            <div *ngFor="let graph of getGraphs()" class="graph">
+                <mat-card>
+                    <canvas height="120" baseChart [datasets]="graph.lineChartData" [labels]="graph.lineChartLabels"
+                        [options]="graph.lineChartOptions" [colors]="graph.lineChartColors"
+                        [legend]="graph.lineChartLegend" chartType="line">
+                    </canvas>
+                </mat-card>
+            </div>
+        </div>
+    </div>
+    <div class="flex-spacer"></div>
 </div>

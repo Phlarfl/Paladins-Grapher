@@ -1,8 +1,28 @@
 .loader {
+    margin-top: 3em;
     width: 100%;
 
-    > * {
-        margin: 0 auto;
+    display: flex;
+    justify-content: center;
+
+    > .container {
+        flex: 0 0 auto;
+
+        position: relative;
+
+        width: 6em;
+        height: 6em;
+
+        background: white;
+        border-radius: 100%;
+        box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2);
+
+        > .circle {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
     }
 }
 
@@ -31,13 +51,43 @@
 
             color: #333;
 
-            > h1 {
+            > .tag {
                 flex: 0 1 auto;
                 margin: 0;
                 font-family: 'Righteous', sans-serif;
+
+                display: flex;
+                flex-direction: column;
+
+                > * {
+                    flex: 0 0 auto;
+                }
+
+                > .title {
+                    font-size: 1.5em;
+                }
+
+                > .subtitle {
+                    font-size: 0.3em;
+
+                    display: flex;
+                    align-items: center;
+
+                    > * {
+                        flex: 0 0 auto;
+                    }
+
+                    >:first-child {
+                        margin-right: 8px;
+
+                        &.refresh-loader {
+                            padding: 8px;
+                        }
+                    }
+                }
             }
 
-            > h3 {
+            > .details {
                 flex: 1 1 auto;
 
                 display: flex;
@@ -47,6 +97,7 @@
 
                 margin: 0;
                 font-family: 'Roboto', sans-serif;
+                font-size: 1em;
                 text-align: right;
                 line-height: 1.5em;
 
@@ -75,11 +126,18 @@
         .name {
             padding-left: 2em;
 
-            > h1 {
-                font-size: 3.5em;
+            > .tag {
+                > .title {
+                    font-size: 3.5em;
+                    line-height: 1em;
+                }
+
+                > .subtitle {
+                    font-size: 1.2em;
+                }
             }
 
-            > h3 {
+            > .details {
                 font-size: 1.2em;
                 font-weight: 600;
             }
@@ -99,24 +157,110 @@
         .name {
             padding-left: 1em;
 
-            > h1 {
-                font-size: 2em;
+            > .tag {
+                > .title {
+                    font-size: 2em;
+                    line-height: 1em;
+                }
+
+                > .subtitle {
+                    font-size: 1em;
+                }
             }
 
-            > h3 {
-                font-size: 0.9em;
-                font-weight: 500;
+            > .details {
+                font-size: 1em;
+                font-weight: 600;
             }
         }
-    }
-    
-    .graph {
-        width: 100%;
-        height: 300px;
     }
 
     .add-bar {
         padding-top: 1em;
         width: 100%;
     }
+
+    .match-container {
+        display: flex;
+        flex-direction: column;
+
+        padding-bottom: 1em;
+
+        > .match {
+            flex: 0 0 auto;
+
+            display: flex;
+            flex-direction: column;
+
+            > .title {
+                flex: 0 0 auto;
+
+                font-family: 'Righteous', sans-serif;
+                font-size: 1.5em;
+            }
+
+            > .teams {
+                flex: 0 0 auto;
+                display: flex;
+
+                > .team {
+                    flex: 1 1 50%;
+
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+
+                    &:first-child {
+                        > .player {
+                            background: rgba(255, 0, 0, 0.2);
+                        }
+                    }
+
+                    &:last-child {
+                        > .player {
+                            background: rgba(0, 0, 255, 0.2);
+                        }
+                    }
+
+                    > .player {
+                        cursor: pointer;
+
+                        flex: 0 0 auto;
+
+                        width: 100%;
+                        max-width: 96px;
+
+                        display: flex;
+                        flex-direction: column;
+
+                        align-items: center;
+
+                        padding: 0.25em;
+                        margin: 0.25em;
+
+                        border: 3px white solid;
+                        border-radius: 0.5em;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+                        > .avatar {
+                            max-height: 96px;
+
+                            border-radius: 0.2em;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    .graph-container {
+        display: flex;
+        flex-direction: column;
+
+        .graph {
+            flex: 1 1 auto;
+            padding: 0.5em;
+        }
+    }
+
 }

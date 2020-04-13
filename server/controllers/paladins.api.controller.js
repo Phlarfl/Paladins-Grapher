@@ -24,8 +24,16 @@ exports.createSession = (req, callback) => {
         .catch((err) => callback({ error: err }));
 };
 
+exports.getChampions = (req) => {
+    return axios.get(exports.buildUrl(req, 'getchampions', true, '/1'));
+};
+
 exports.getChampionRanks = (player, req) => {
     return axios.get(exports.buildUrl(req, 'getchampionranks', true, `/${player}`));
+};
+
+exports.getMatches = (players, req) => {
+    return axios.get(exports.buildUrl(req, 'getmatchdetailsbatch', true, `/${players.join(',')}`));
 };
 
 exports.getMatchHistory = (player, req) => {
@@ -35,3 +43,7 @@ exports.getMatchHistory = (player, req) => {
 exports.getPlayer = (player, req) => {
     return axios.get(exports.buildUrl(req, 'getplayer', true, `/${player}`));
 };
+
+exports.getPlayerStatus = (player, req) => {
+    return axios.get(exports.buildUrl(req, 'getplayerstatus', true, `/${player}`));
+}
