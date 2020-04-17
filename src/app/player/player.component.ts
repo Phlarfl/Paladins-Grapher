@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription, BehaviorSubject } from 'rxjs';
 
@@ -8,17 +8,19 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Graph } from '../classes/graph.class';
 import { MatchPlayer } from '../classes/matchPlayer.class';
 import { Champion } from '../classes/champion.class';
+import { RequestHelper } from '../classes/request.helper.class';
 
 @Component({
   selector: 'app-player',
   templateUrl: './player.component.html',
-  styleUrls: ['./player.component.scss']
+  styleUrls: ['./player.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class PlayerComponent implements OnInit, OnDestroy {
 
   subscriptions: Subscription[] = [];
 
-  playerName = new BehaviorSubject<String>("");
+  playerNames = new BehaviorSubject<string[]>([]);
   players = new BehaviorSubject<{ [key: string]: any }>({});
   graphs = new BehaviorSubject<{ [key: string]: Graph }>({});
   matches = new BehaviorSubject<{ [key: string]: MatchPlayer[] }>({});
@@ -37,20 +39,16 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.push(this.route.paramMap.subscribe((paramMap) => {
-      this.playerName.next(paramMap.get('player'));
+      this.playerNames.next(paramMap.get('playerNames').split(','));
     }));
 
-    this.subscriptions.push(this.playerName.subscribe((playerName: string) => {
-      this.getData(playerName);
+    this.subscriptions.push(this.playerNames.subscribe((playerNames: string[]) => {
+      this.getData(playerNames);
     }));
 
     this.subscriptions.push(this.adding.subscribe((adding) => {
       if (adding) this.addForm.get('playerName').disable();
       else this.addForm.get('playerName').enable();
-    }));
-
-    this.subscriptions.push(this.players.subscribe((players) => {
-      this.getLiveMatchData();
     }));
   }
 
@@ -70,67 +68,52 @@ export class PlayerComponent implements OnInit, OnDestroy {
     return Object.values(this.matches.getValue());
   }
 
-  getTeam(team: number, match: MatchPlayer[]): MatchPlayer[] {
-    return match.filter((player, index) => (team === 0 && index < 5) || (team === 1 && index >= 5));
+  displayError(error: string) {
+    this.snackbar.open(error, undefined, { duration: 5000 });
   }
 
-  getData(playerName: string) {
-    axios.default.post('/api/player', { player: playerName }).then((res) => {
-      if (res.data.error) {
-        console.error('There was an error receiving player data:', res.data.error);
-        this.snackbar.open(res.data.error, undefined, {
-          duration: 5000
+  getData(playerNames: string[]) {
+    new RequestHelper<{ player: any, playerStatus: any, matches: any, champions: any }[]>()
+      .to('/api/player')
+      .with({ playerNames: playerNames })
+      .catch((error) => this.displayError(error))
+      .finally(() => { this.loading = false; this.adding.next(false); })
+      .post((res) => {
+        res.forEach((res) => {
+          const player = {
+            ...res.player,
+            status: res.playerStatus
+          };
+
+          const matches = res.matches;
+          const champions = res.champions;
+
+          if (this.players.getValue()[player.hz_player_name]) return;
+
+          const players = this.players.getValue();
+          players[player.hz_player_name] = player;
+          this.players.next(players);
+
+          const graphDatas = [
+            Graph.buildDamageDealtGraph(player.hz_player_name, matches),
+            Graph.buildDamageTakenGraph(player.hz_player_name, matches),
+            Graph.buildKdaGraph(player.hz_player_name, matches),
+            Graph.buildChampionWinsGraph(player.hz_player_name, champions),
+            Graph.buildChampionLossesGraph(player.hz_player_name, champions),
+            Graph.buildChampionKdaGraph(player.hz_player_name, champions)
+          ];
+
+          const graphs = this.graphs.getValue();
+          graphDatas.forEach((graphData) => {
+            const existing = graphs[graphData.id];
+            if (existing) {
+              existing.addData(graphData);
+            } else graphs[graphData.id] = new Graph(graphData);
+          })
+          this.graphs.next(graphs);
         });
-        return;
-      }
-      if (res.status != 200 || !res.data || !res.data.player || !res.data.playerStatus || !res.data.matches || !res.data.champions) {
-        console.error('There was an error receiving player data:', res.status, res.statusText, res.data ? '' : 'No data received');
-        this.snackbar.open('An error occurred, please try again', undefined, {
-          duration: 5000
-        });
-        return;
-      }
-      const player = {
-        ...res.data.player,
-        status: res.data.playerStatus
-      };
-
-      const matches = res.data.matches;
-      const champions = res.data.champions;
-
-      if (this.players.getValue()[player.hz_player_name]) return;
-
-      const players = this.players.getValue();
-      players[player.hz_player_name] = player;
-      this.players.next(players);
-
-      const graphDatas = [
-        Graph.buildDamageDealtGraph(player.hz_player_name, matches),
-        Graph.buildDamageTakenGraph(player.hz_player_name, matches),
-        Graph.buildKdaGraph(player.hz_player_name, matches),
-        Graph.buildChampionWinsGraph(player.hz_player_name, champions),
-        Graph.buildChampionLossesGraph(player.hz_player_name, champions),
-        Graph.buildChampionKdaGraph(player.hz_player_name, champions)
-      ];
-
-      const graphs = this.graphs.getValue();
-      graphDatas.forEach((graphData) => {
-        const existing = graphs[graphData.id];
-        if (existing) {
-          existing.addData(graphData);
-        } else graphs[graphData.id] = new Graph(graphData);
-      })
-      this.graphs.next(graphs);
-      this.addForm.get('playerName').reset();
-    }).catch((reason) => {
-      console.error('There was an error receiving player data:', reason);
-      this.snackbar.open('An error occurred, please try again', undefined, {
-        duration: 5000
+        this.addForm.get('playerName').reset();
       });
-    }).finally(() => {
-      this.loading = false;
-      this.adding.next(false);
-    });
   }
 
   onAdd(player?: string): void {
@@ -148,7 +131,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
           this.addForm.get('playerName').setValue(player);
       }
       const playerName = player || this.addForm.get('playerName').value;
-      this.getData(playerName);
+      this.getData([playerName]);
     }
   }
 
@@ -168,99 +151,34 @@ export class PlayerComponent implements OnInit, OnDestroy {
     if (!refresh.getValue()) {
       refresh.next(true);
 
-      axios.default.post('/api/player/status', { player: player.hz_player_name }).then((res) => {
-        if (res.data.error) {
-          console.error('There was an error receiving player data:', res.data.error);
-          this.snackbar.open(res.data.error, undefined, {
-            duration: 5000
-          });
-          return;
-        }
-        if (res.status != 200 || !res.data || !res.data.playerStatus) {
-          console.error('There was an error receiving player data:', res.status, res.statusText, res.data ? '' : 'No data received');
-          this.snackbar.open('An error occurred, please try again', undefined, {
-            duration: 5000
-          });
-          return;
-        }
-        const players = this.players.getValue();
-        if (!players[player.hz_player_name]) {
-          console.error('There was an error refreshing player status, player not found:', player.hz_player_name);
-          this.snackbar.open('There was an issue refreshing player status, please refresh the page', undefined, {
-            duration: 5000
-          });
-          return;
-        }
-        players[player.hz_player_name].status = res.data.playerStatus;
-        this.players.next(players);
-      }).finally(() => {
-        refresh.next(false);
-      });
+      new RequestHelper<{ playerStatus: any }>()
+        .to('/api/player/status')
+        .with({ player: player.hz_player_name })
+        .catch((error) => this.displayError(error))
+        .finally(() => { refresh.next(false); })
+        .post((res) => {
+          const players = this.players.getValue();
+          players[player.hz_player_name].status = res.playerStatus;
+          this.players.next(players);
+        });
     }
   }
 
-  getLiveMatchData() {
-    const liveMatches = {};
-    Object.values(this.players.getValue()).forEach((player) => {
-      if (player.status.Match)
-        liveMatches[player.status.Match] = player.status.Match;
-    });
-    if (Object.values(liveMatches).length === 0)
-      this.matches.next({});
-    else
-      axios.default.post('/api/match', { matches: Object.values(liveMatches) }).then((res) => {
-        if (res.data.error) {
-          console.error('There was an error receiving match data:', res.data.error);
-          this.snackbar.open(res.data.error, undefined, {
-            duration: 5000
-          });
-          return;
-        }
-        if (res.status != 200 || !res.data || !res.data.matches) {
-          console.error('There was an error receiving match data:', res.status, res.statusText, res.data ? '' : 'No data received');
-          this.snackbar.open('An error occurred, please try again', undefined, {
-            duration: 5000
-          });
-          return;
-        }
-        const matches: { [key: number]: MatchPlayer[] } = res.data.matches;
-        this.matches.next(matches);
-
-        const champions: number[] = [];
-        Object.values(matches).forEach((match) => {
-          match.forEach((player) => {
-            if (champions.indexOf(player.ChampionId) === -1)
-              champions.push(player.ChampionId);
-          });
-        });
-        this.getChampions(champions);
-      });
-  }
-
   getChampions(champions: number[]) {
-    if (!this.loadingChampions) {
+    if (!this.loadingChampions && champions.length > 0) {
       this.loadingChampions = true;
-      axios.default.post('/api/champions', { champions: champions }).then((res) => {
-        if (res.data.error) {
-          console.error('There was an error receiving champion data:', res.data.error);
-          this.snackbar.open(res.data.error, undefined, {
-            duration: 5000
+      new RequestHelper<{ champions: any[] }>()
+        .to('/api/champions')
+        .with({ champions: champions })
+        .catch((error) => this.displayError(error))
+        .finally(() => { this.loadingChampions = false })
+        .post((res) => {
+          const champions: { [key: number]: Champion } = {};
+          res.champions.forEach((champion: Champion) => {
+            champions[champion.id] = champion;
           });
-          return;
-        }
-        if (res.status != 200 || !res.data || !res.data.champions) {
-          console.error('There was an error receiving champion data:', res.status, res.statusText, res.data ? '' : 'No data received');
-          this.snackbar.open('An error occurred, please try again', undefined, {
-            duration: 5000
-          });
-          return;
-        }
-        const champions: { [key: number]: Champion } = {};
-        res.data.champions.forEach((champion: Champion) => {
-          champions[champion.id] = champion;
-        })
-        this.champions.next(champions);
-      });
+          this.champions.next(champions);
+        });
     }
   }
 }

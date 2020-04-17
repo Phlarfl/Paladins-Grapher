@@ -10,7 +10,7 @@
     <div class="inner player-content">
         <div *ngFor="let player of getPlayers(); let i = index"
             class="{{ 'player-header' + (getPlayers().length > 1 ? '-small' : '') }}">
-            <img *ngIf="player.AvatarURL" class="icon" [src]="player.AvatarURL">
+            <img class="icon" [src]="player.AvatarURL || 'https://hirez-api-docs.herokuapp.com/paladins/avatar'">
             <div class="name">
                 <div class="tag">
                     <div class="title">
@@ -54,24 +54,9 @@
             </mat-form-field>
         </form>
 
-        <div *ngIf="getMatches().length > 0" class="match-container">
-            <div *ngFor="let match of getMatches()" class="match">
-                <div class="title">
-                    Live Match: {{ match[0].mapGame }}
-                </div>
-                <div class="teams">
-                    <div *ngFor="let team of [0, 1]" class="team">
-                        <div *ngFor="let player of getTeam(team, match)" class="player"
-                            (click)="onAdd(player.playerName)">
-                            <img [src]="(champions | async)[player.ChampionId]?.ChampionIcon_URL" class="avatar">
-                            <span>
-                                {{ player.playerName || '—' }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <app-matches [players]="players" [champions]="champions | async" (error)="displayError($event)"
+            (retrieved)="getChampions($event)" (onAdd)="onAdd($event)">
+        </app-matches>
 
         <div *ngIf="getGraphs().length > 0" class="graph-container">
             <div *ngFor="let graph of getGraphs()" class="graph">

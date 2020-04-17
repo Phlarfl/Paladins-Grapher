@@ -9,14 +9,10 @@ import { FormControl, FormGroup } from '@angular/forms';
 })
 export class HomeComponent {
 
-  searchForm = new FormGroup({
-    playerName: new FormControl('')
-  });
-
   constructor(private router: Router) { }
 
-  onSubmit(): void {
-    this.router.navigate([`/player/${this.searchForm.get('playerName').value}`]);
+  onSubmit(playerNames: string[]): void {
+    this.router.navigate([`/player/${playerNames.join(',')}`]);
   }
 
 }

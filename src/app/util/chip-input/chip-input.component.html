@@ -1,0 +1,14 @@
+<mat-form-field appearance="outline">
+    <mat-label>{{ placeholder }}</mat-label>
+    <mat-chip-list #chipList>
+        <mat-chip *ngFor="let item of items" [selectable]="false" [removable]="true" (removed)="remove(item)">
+            {{ item }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+        <input [matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separators" [matChipInputAddOnBlur]="true"
+            (matChipInputTokenEnd)="add($event)">
+    </mat-chip-list>
+    <button *ngIf="submitIcon" mat-button matSuffix mat-icon-button (click)="submit()">
+        <mat-icon>{{ submitIcon }}</mat-icon>
+    </button>
+</mat-form-field>

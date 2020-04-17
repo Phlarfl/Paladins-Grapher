@@ -1,0 +1,18 @@
+<div *ngIf="matches.length > 0" class="match-container">
+    <div *ngFor="let match of matches" class="match">
+        <div class="title">
+            Live Match: {{ match[0].mapGame }}
+        </div>
+        <div class="teams">
+            <div *ngFor="let team of [0, 1]" class="team">
+                <div *ngFor="let player of getTeam(team, match)" class="player" (click)="addPlayer(player)">
+                    <img [src]="champions[player.ChampionId]?.ChampionIcon_URL || 'https://hirez-api-docs.herokuapp.com/paladins/avatar'"
+                        class="avatar">
+                    <span>
+                        {{ player.playerName || '—' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

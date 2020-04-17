@@ -6,50 +6,59 @@ module.exports = [
         method: 'post',
         url: '/player',
         controller: (req, res) => {
-            const inputName = req.body.player;
-            if (!inputName) {
-                res.send({ error: 'Invalid request, missing parameter: player' });
+            const inputNames = req.body.playerNames;
+            if (!inputNames) {
+                res.send({ error: 'Invalid request, missing parameter: playerNames' });
                 return;
             }
-            axios.all([
-                paladinsApi.getPlayer(inputName, req),
-                paladinsApi.getPlayerStatus(inputName, req),
-                paladinsApi.getMatchHistory(inputName, req),
-                paladinsApi.getChampionRanks(inputName, req)
-            ]).then(axios.spread((player, playerStatus, matches, champions) => {
+
+            const requests = [];
+            inputNames.forEach((inputName) => {
+                requests.push(paladinsApi.getPlayer(inputName, req));
+                requests.push(paladinsApi.getPlayerStatus(inputName, req));
+                requests.push(paladinsApi.getMatchHistory(inputName, req));
+                requests.push(paladinsApi.getChampionRanks(inputName, req));
+            });
+
+            axios.all(requests).then((playersData) => {
+                const datas = playersData.map((playerData) => playerData.data);
+
+                const players = [];
+                for (let i = 0; i < datas.length; i += 4) {
+                    const inputName = inputNames[i * 0.25];
+                    const player = datas[i];
+                    const playerStatus = datas[i + 1];
+                    const matches = datas[i + 2];
+                    const champions = datas[i + 3];
+                    if (!player || !player[0]) {
+                        console.error('No player data received for player', inputName);
+                        continue;
+                    }
+                    if (!playerStatus || !playerStatus[0]) {
+                        console.error('No player status data received for player', inputName);
+                        continue;
+                    }
+                    if (!matches || !matches[0].playerName) {
+                        console.error('No match history data received for player', inputName);
+                        continue;
+                    }
+                    if (!champions) {
+                        console.error('No champion data found for player', inputName);
+                        continue;
+                    }
+                    players.push({
+                        player: player[0],
+                        playerStatus: playerStatus[0],
+                        matches: matches,
+                        champions: champions
+                    });
+                }
+
                 res.setHeader('Content-Type', 'application/json');
-
-                if (!player || !player.data || !player.data[0]) {
-                    console.error('No player data received');
-                    res.send({ error: `No player found: '${inputName}'` });
-                    return;
-                }
-
-                if (!playerStatus || !playerStatus.data || !playerStatus.data[0]) {
-                    console.error('No player status data received');
-                    res.send({ error: `No player status found: '${inputName}'` });
-                    return;
-                }
-
-                if (!matches || !matches.data || !matches.data[0].playerName) {
-                    console.error('No match data received');
-                    res.send({ error: `No matches found for player: '${inputName}'` });
-                    return;
-                }
-
-                if (!champions || !champions.data) {
-                    console.error('No champion data received');
-                    res.send({ error: `No champions found for player: '${inputName}'` });
-                    return;
-                }
-
-                res.send({
-                    player: player.data[0],
-                    playerStatus: playerStatus.data[0],
-                    matches: matches.data,
-                    champions: champions.data
-                });
-            }));
+                res.send(players);
+            }).catch((reason) => {
+                console.error('There was an issue getting player data');
+            });
         }
     },
     {
@@ -117,9 +126,17 @@ module.exports = [
                 }
 
                 const parsedData = {};
-                const matchData = matches.map((match) => match.data).concat(storedMatches);
+                const matchData = matches.map((match) => match.data).concat(Object.values(storedMatches));
                 matchData.filter((match) => match.length > 0).forEach((match) => {
-                    parsedData[match[0].Match] = match;
+                    for (let i = match.length; i < 10; i++) {
+                        match.push({
+                            Match: match[0].Match,
+                            mapGame: match[0].mapGame,
+                            playerName: 'Bot'
+                        });
+                    }
+                    if (match[0].mapGame)
+                        parsedData[match[0].Match] = match;
                 });
                 req.db.update('matches', (matches) => {
                     return { ...matches, ...parsedData };

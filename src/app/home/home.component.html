@@ -1,15 +1,10 @@
 <div class="content">
     <div class="flex-spacer"></div>
     <div class="inner">
-        <form id="search-form" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
-            <mat-form-field class="search-bar" appearance="outline">
-                <mat-label>Search Player</mat-label>
-                <input matInput type="text" placeholder="DryBare" name="player" formControlName="playerName">
-                <button mat-button matSuffix mat-icon-button>
-                    <mat-icon>search</mat-icon>
-                </button>
-            </mat-form-field>
-        </form>
+        <div class="search-bar">
+            <app-chip-input placeholder="Search Players" submitIcon="search" (onSubmit)="onSubmit($event)">
+            </app-chip-input>
+        </div>
     </div>
     <div class="flex-spacer"></div>
 </div>
