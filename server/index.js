@@ -14,7 +14,9 @@ const db = lowdb(dbAdapter);
 if (app.get('env') === 'production')
     app.set('trust proxy 1');
 
-app.use(express.static(path.join(__dirname, '../dist')))
+app
+    .use(express.static(path.join(__dirname, '../public')))
+    .use(express.static(path.join(__dirname, '../dist')))
     .use(bodyParser.json())
     .use(bodyParser.urlencoded({
         extended: true

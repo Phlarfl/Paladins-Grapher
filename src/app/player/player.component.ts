@@ -121,14 +121,11 @@ export class PlayerComponent implements OnInit, OnDestroy {
       this.adding.next(true);
       if (player) {
         if (player.length === 0) {
-          this.snackbar.open(`Cannot add this player, their profile is hidden`, undefined, {
-            duration: 5000
-          });
+          this.displayError('Cannot add this player, their profile is hidden');
           this.adding.next(false);
           return;
         }
-        if (player.length > 0)
-          this.addForm.get('playerName').setValue(player);
+        if (player.length > 0) this.addForm.get('playerName').setValue(player);
       }
       const playerName = player || this.addForm.get('playerName').value;
       this.getData([playerName]);
@@ -174,9 +171,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
         .finally(() => { this.loadingChampions = false })
         .post((res) => {
           const champions: { [key: number]: Champion } = {};
-          res.champions.forEach((champion: Champion) => {
-            champions[champion.id] = champion;
-          });
+          res.champions.forEach((champion: Champion) => { champions[champion.id] = champion; });
           this.champions.next(champions);
         });
     }

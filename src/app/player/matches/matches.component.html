@@ -4,7 +4,7 @@
             Live Match: {{ match[0].mapGame }}
         </div>
         <div class="teams">
-            <div *ngFor="let team of [0, 1]" class="team">
+            <div *ngFor="let team of [1, 2]" class="team">
                 <div *ngFor="let player of getTeam(team, match)" class="player" (click)="addPlayer(player)">
                     <img [src]="champions[player.ChampionId]?.ChampionIcon_URL || 'https://hirez-api-docs.herokuapp.com/paladins/avatar'"
                         class="avatar">

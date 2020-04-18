@@ -6,7 +6,7 @@
             <mat-icon matChipRemove>cancel</mat-icon>
         </mat-chip>
         <input [matChipInputFor]="chipList" [matChipInputSeparatorKeyCodes]="separators" [matChipInputAddOnBlur]="true"
-            (matChipInputTokenEnd)="add($event)">
+            (matChipInputTokenEnd)="add($event)" (keydown.enter)="submit()">
     </mat-chip-list>
     <button *ngIf="submitIcon" mat-button matSuffix mat-icon-button (click)="submit()">
         <mat-icon>{{ submitIcon }}</mat-icon>

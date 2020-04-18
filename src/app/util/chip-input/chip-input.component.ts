@@ -1,4 +1,4 @@
-import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { COMMA, ENTER, SPACE } from '@angular/cdk/keycodes';
 import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
 import { MatChipInputEvent } from '@angular/material/chips';
 
@@ -14,7 +14,7 @@ export class ChipInputComponent implements OnInit {
 
   @Output() onSubmit: EventEmitter<string[]> = new EventEmitter<string[]>();
 
-  separators = [COMMA, ENTER];
+  separators = [COMMA, ENTER, SPACE];
   items: string[] = [];
 
   constructor() { }
@@ -38,7 +38,8 @@ export class ChipInputComponent implements OnInit {
   }
 
   submit() {
-    this.onSubmit.emit(this.items);
+    if (this.onSubmit)
+      this.onSubmit.emit(this.items);
   }
 
 }

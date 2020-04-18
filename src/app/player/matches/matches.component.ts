@@ -63,7 +63,7 @@ export class MatchesComponent implements OnInit, OnDestroy {
   }
 
   getTeam(team: number, match: MatchPlayer[]): MatchPlayer[] {
-    return match.filter((player, index) => (team === 0 && index < 5) || (team === 1 && index >= 5));
+    return match.filter((player) => player.taskForce === team);
   }
 
 }
