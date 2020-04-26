@@ -9,6 +9,7 @@ import { Graph } from '../classes/graph.class';
 import { MatchPlayer } from '../classes/matchPlayer.class';
 import { Champion } from '../classes/champion.class';
 import { RequestHelper } from '../classes/request.helper.class';
+import { SnackbarService } from '../snackbar.service';
 
 @Component({
   selector: 'app-player',
@@ -35,7 +36,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     playerName: new FormControl('')
   });
 
-  constructor(private route: ActivatedRoute, private snackbar: MatSnackBar) { }
+  constructor(private route: ActivatedRoute, private snackbar: SnackbarService) { }
 
   ngOnInit() {
     this.subscriptions.push(this.route.paramMap.subscribe((paramMap) => {
@@ -68,18 +69,23 @@ export class PlayerComponent implements OnInit, OnDestroy {
     return Object.values(this.matches.getValue());
   }
 
-  displayError(error: string) {
-    this.snackbar.open(error, undefined, { duration: 5000 });
+  displayMessage(error: string) {
+    this.snackbar.queueSnackBar(error, { duration: 2000 });
   }
 
   getData(playerNames: string[]) {
-    new RequestHelper<{ player: any, playerStatus: any, matches: any, champions: any }[]>()
+    new RequestHelper<{ player: any, playerStatus: any, matches: any, champions: any, error: string }[]>()
       .to('/api/player')
       .with({ playerNames: playerNames })
-      .catch((error) => this.displayError(error))
+      .catch((error) => this.displayMessage(error))
       .finally(() => { this.loading = false; this.adding.next(false); })
       .post((res) => {
         res.forEach((res) => {
+          if (res.error) {
+            this.displayMessage(res.error);
+            return;
+          }
+
           const player = {
             ...res.player,
             status: res.playerStatus
@@ -121,7 +127,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
       this.adding.next(true);
       if (player) {
         if (player.length === 0) {
-          this.displayError('Cannot add this player, their profile is hidden');
+          this.displayMessage('Cannot add this player, their profile is hidden');
           this.adding.next(false);
           return;
         }
@@ -137,9 +143,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     delete players[player];
     this.players.next(players);
     Object.values(this.graphs.getValue()).forEach((graph) => graph.deleteData(player));
-    this.snackbar.open(`Removed ${player}'s data`, undefined, {
-      duration: 3000
-    });
+    this.displayMessage(`Removed ${player}'s data`);
   }
 
   refreshPlayerStatus(player: any) {
@@ -151,7 +155,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
       new RequestHelper<{ playerStatus: any }>()
         .to('/api/player/status')
         .with({ player: player.hz_player_name })
-        .catch((error) => this.displayError(error))
+        .catch((error) => this.displayMessage(error))
         .finally(() => { refresh.next(false); })
         .post((res) => {
           const players = this.players.getValue();
@@ -167,7 +171,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
       new RequestHelper<{ champions: any[] }>()
         .to('/api/champions')
         .with({ champions: champions })
-        .catch((error) => this.displayError(error))
+        .catch((error) => this.displayMessage(error))
         .finally(() => { this.loadingChampions = false })
         .post((res) => {
           const champions: { [key: number]: Champion } = {};

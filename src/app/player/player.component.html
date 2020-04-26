@@ -54,7 +54,7 @@
             </mat-form-field>
         </form>
 
-        <app-matches [players]="players" [champions]="champions | async" (error)="displayError($event)"
+        <app-matches [players]="players" [champions]="champions | async" (error)="displayMessage($event)"
             (retrieved)="getChampions($event)" (onAdd)="onAdd($event)">
         </app-matches>
 

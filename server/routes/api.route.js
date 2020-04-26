@@ -30,31 +30,38 @@ module.exports = [{
                 const playerStatus = datas[i + 1];
                 const matches = datas[i + 2];
                 const champions = datas[i + 3];
+
+                const playerData = {
+                    player: null,
+                    playerStatus: null,
+                    matches: [],
+                    champions: [],
+                    error: null
+                };
+
                 if (!player || !player[0]) {
                     console.error('No player data received for player', inputName);
-                    continue;
-                }
-                if (!playerStatus || !playerStatus[0]) {
+                    playerData.error = `No player data received for '${inputName}'`;
+                } else if (!playerStatus || !playerStatus[0]) {
                     console.error('No player status data received for player', inputName);
-                    continue;
-                }
-                if (!matches || !matches[0].playerName) {
+                    playerData.error = `No player status data received for '${inputName}'`;
+                } else if (!matches || !matches[0].playerName) {
                     console.error('No match history data received for player', inputName);
-                    continue;
-                }
-                if (!champions) {
+                    playerData.error = `No match history data received for '${inputName}'`;
+                } else if (!champions) {
                     console.error('No champion data found for player', inputName);
-                    continue;
+                    playerData.error = `No champion data received for '${inputName}'`;
                 }
 
-                replaceExternalUrl('./assets/img/avatar', player[0], 'AvatarURL');
+                if (playerData.error == null) {
+                    replaceExternalUrl('./assets/img/avatar', player[0], 'AvatarURL');
+                    playerData.player = player[0];
+                    playerData.playerStatus = playerStatus[0];
+                    playerData.matches = matches;
+                    playerData.champions = champions;
+                }
 
-                players.push({
-                    player: player[0],
-                    playerStatus: playerStatus[0],
-                    matches: matches,
-                    champions: champions
-                });
+                players.push(playerData);
             }
 
             res.setHeader('Content-Type', 'application/json');
